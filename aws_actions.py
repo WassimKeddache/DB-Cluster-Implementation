@@ -22,7 +22,7 @@ def create_pem_key():
     except Exception as e:
         logging.warning(f'The key {key_name} already exists.')
 
-def create_instances(instance_type: str, number_of_instances: int, security_group_id: str):
+def create_instances(instance_type: str, number_of_instances: int, security_group_id: str, user_data: str = ""):
     try:
         logging.info(f"Creating {number_of_instances} {instance_type} instance(s)")
         instances = ec2.run_instances(
@@ -31,7 +31,8 @@ def create_instances(instance_type: str, number_of_instances: int, security_grou
             MaxCount=number_of_instances,
             KeyName="project_pem_key",
             InstanceType=instance_type,
-            SecurityGroupIds=[security_group_id]
+            SecurityGroupIds=[security_group_id],
+            UserData=user_data,
         )
         logging.info(f"Created {number_of_instances} {instance_type} instance(s)")
         return instances
@@ -53,7 +54,7 @@ def create_sg_internet_facing(vpc_id):
     security_group_id = ''
     try:
         response = ec2.create_security_group(
-            GroupName='sg-internet-facing',
+            GroupName='external-facing-sg',
             Description='Security group with open HTTP and SSH access',
             VpcId=vpc_id
         )
@@ -94,12 +95,12 @@ def create_sg_internet_facing(vpc_id):
         logging.info('Egress rule added to allow all outbound traffic.')
 
     except Exception as e:
-        logging.warning(f'An internet facing security group already exists.')
+        logging.warning(f'An external facing security group already exists.')
         response = ec2.describe_security_groups(
             Filters=[
                 {
                     'Name': 'group-name',
-                    'Values': ['sg-internet-facing']
+                    'Values': ['external-facing-sg']
                 }
             ]
         )
@@ -107,57 +108,92 @@ def create_sg_internet_facing(vpc_id):
     logging.info(f"Security group ID: {security_group_id}")
     return security_group_id
 
-def create_sg_internal(vpc_id, trusted_host_sg_id):
-    sg_internal_id = ''
+def create_sg_internal(vpc_id, external_sg_id):
+    internal_sg_id = ''
     try:
         response = ec2.create_security_group(
-            GroupName='sg-internet-facing',
+            GroupName='internal-facing-sg',
             Description='Security group with restricted HTTP and SSH access',
             VpcId=vpc_id
         )
         
-        sg_internal_id = response['GroupId']
+        internal_sg_id = response['GroupId']
         
         ec2.authorize_security_group_ingress(
-            GroupId=sg_internal_id,
+            GroupId=internal_sg_id,
             IpPermissions=[
                 {
                     'IpProtocol': 'tcp',
                     'FromPort': 22,
                     'ToPort': 22,
-                    'UserIdGroupPairs': [{'GroupId': trusted_host_sg_id}]
+                    'UserIdGroupPairs': [
+                        {
+                        'Description': 'HTTP access from other instances',
+                        'GroupId': external_sg_id
+                        }
+                    ]
                 },
                 {
                     'IpProtocol': 'tcp',
                     'FromPort': 80,
                     'ToPort': 80,
-                    'UserIdGroupPairs': [{'GroupId': trusted_host_sg_id}]
+                    'UserIdGroupPairs': [
+                        {
+                        'Description': 'HTTP access from other instances',
+                        'GroupId': external_sg_id
+                        }
+                    ]
                 },
                 {
                     'IpProtocol': 'tcp',
                     'FromPort': 22,
                     'ToPort': 22,
-                    'UserIdGroupPairs': [{'GroupId': sg_internal_id}]
+                    'UserIdGroupPairs': [
+                        {
+                        'Description': 'HTTP access from other instances',
+                        'GroupId': internal_sg_id
+                        }
+                    ]
                 },
                 {
                     'IpProtocol': 'tcp',
                     'FromPort': 80,
                     'ToPort': 80,
-                    'UserIdGroupPairs': [{'GroupId': sg_internal_id}]
+                    'UserIdGroupPairs': [
+                        {
+                        'Description': 'HTTP access from other instances',
+                        'GroupId': internal_sg_id
+                        }
+                    ]
                 }
             ]
         )
         logging.info('Ingress rules added for SSH and HTTP between internal instances and the internet facing instances.')
 
-        # TODO Only trusted host + internal instances
         ec2.authorize_security_group_egress(
-            GroupId=sg_internal_id,
+            GroupId=internal_sg_id,
             IpPermissions=[
                 {
                     'IpProtocol': '-1',  # Allow all traffic
                     'FromPort': 0,
                     'ToPort': 65535,
-                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}]  # Allow all outbound
+                    'UserIdGroupPairs': [
+                        {
+                        'Description': 'HTTP access from other instances',
+                        'GroupId': internal_sg_id
+                        }
+                    ] # Allow all outbound
+                },
+                {
+                    'IpProtocol': '-1',  # Allow all traffic
+                    'FromPort': 0,
+                    'ToPort': 65535,
+                    'UserIdGroupPairs': [
+                        {
+                        'Description': 'HTTP access from other instances',
+                        'GroupId': external_sg_id
+                        }
+                    ]  # Allow all outbound
                 }
             ]
         )
@@ -167,18 +203,15 @@ def create_sg_internal(vpc_id, trusted_host_sg_id):
             Filters=[
                 {
                     'Name': 'group-name',
-                    'Values': ['sg-internal']
+                    'Values': ['internal-facing-sg']
                 }
             ]
         )
-        sg_internal_id = response['SecurityGroups'][0]['GroupId']
-    logging.info(f"Internal security group ID: {sg_internal_id}")
-    return sg_internal_id
+        internal_sg_id = response['SecurityGroups'][0]['GroupId']
+    logging.info(f"Internal security group ID: {internal_sg_id}")
+    return internal_sg_id
 
 
-def create_trusted_host_sg(vpc_id):
-    # TODO Create Trusted Host security group
-    ...
 
 def create_security_groups(vpc_id):
     internet_facing_sg_id = create_sg_internet_facing(vpc_id)
