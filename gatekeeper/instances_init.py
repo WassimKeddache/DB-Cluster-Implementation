@@ -22,9 +22,6 @@ def scp(env, file, is_dir=False):
     os.system(f"scp -i {env['key_filename']} {'-r' if is_dir else ''} {file} {env['user']}@{env['host']}:/home/{env['user']}/")
 
 def workers_init(instances_dns):
-    # Get the DNS of each instances from the dictionary file
-    # SSH into each instance and run the initialization script
-    
     for instance in instances_dns:
         env = {
             "key_filename": '../project_pem_key.pem',
@@ -34,7 +31,9 @@ def workers_init(instances_dns):
 
         ssh(env, "echo 'Hello, World!'", first_connection=True)
         scp(env, "../db_worker", is_dir=True)
+        scp(env, "../docker-packages", is_dir=True)
         scp(env, "./dns_dict.json")
+        ssh(env, "cd db_worker && chmod +x boot.sh")
 
         logger.info(f"Worker {instance} initialized")
 

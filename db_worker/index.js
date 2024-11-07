@@ -3,7 +3,7 @@ const mysql = require('mysql');
 
 // Create the Express app
 const app = express();
-const port = 8080;
+const port = 80;
 
 // Create a connection to the MySQL database
 const connection = mysql.createConnection({
@@ -30,6 +30,11 @@ app.get('/actors', (req, res) => {
     res.json(results);
   });
 });
+
+app.get('hello-world', (req, res) => {
+    res.send('Hello, World!');
+});
+    
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
