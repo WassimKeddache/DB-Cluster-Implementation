@@ -1,5 +1,7 @@
 import subprocess
+import os
 import logging
+import json
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,30 +17,31 @@ def ssh(env, cmd, first_connection=False, capture_output=False):
         text=True
     )
 
+def scp(env, file, is_dir=False):
+    logger.info(f"Copying {env["user"]} to {env["host"]}")
+    os.system(f"scp -i {env['key_filename']} {'-r' if is_dir else ''} {file} {env['user']}@{env['host']}:/home/{env['user']}/")
+
 def workers_init(instances_dns):
     # Get the DNS of each instances from the dictionary file
     # SSH into each instance and run the initialization script
     
     for instance in instances_dns:
         env = {
-            "key_filename": 'project_pem_key.pem',
+            "key_filename": '../project_pem_key.pem',
             "user": "ubuntu",
             "host": instance,
         }
 
-        ssh(env, "sudo apt update -y", first_connection=True)
-        ssh(env, "sudo apt-get install mysql-server -y")
-        ssh(env, "wget -0 sakila-db.tar.gz https://downloads.mysql.com/docs/sakila-db.tar.gz")
-        ssh(env, "tar -xvzf sakila-db.tar.gz")
-        ssh(env, "rm sakila-db.tar.gz")
-        ssh(env, "mysql -e 'SOURCE ./sakila-db/sakila-schema.sql;'")
-        ssh(env, "mysql -E 'SOURCE ./sakila-db/sakila-data.sql;'")
-        ssh(env, "mysql -e 'USE sakila'")
-        ssh(env, "mysql -e mysql -e \"CREATE USER \'admin\'@\'localhost\' IDENTIFIED BY \'password\';\"")
+        ssh(env, "echo 'Hello, World!'", first_connection=True)
+        scp(env, "../db_worker", is_dir=True)
+        scp(env, "./dns_dict.json")
 
         logger.info(f"Worker {instance} initialized")
 
 if __name__ == "__main__":
+    dns_dict = {}
     
+    with open("dns_dict.json", "r") as file:
+        dns_dict = json.load(file)
     
-    workers_init()
+    workers_init(dns_dict["workers"])

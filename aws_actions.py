@@ -222,8 +222,8 @@ def wait_for_instance(instance_id):
     instance_ressource = ec2_resource.Instance(instance_id)
     logging.info("Waiting until running")
     instance_ressource.wait_until_running()
-    logging.info("Waiting 60s")
-    time.sleep(60)
+    logging.info("Waiting 30s")
+    time.sleep(30)
 
 def get_dns_name(instance_id):
     # TODO Get the private DNS name of the instance
