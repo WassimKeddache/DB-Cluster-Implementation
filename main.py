@@ -3,6 +3,11 @@ import logging
 import ssh_interface as ssh
 import os
 import json
+# TODO 
+# Tester l'image docker dans gateway sans lancer db_worker
+# Si image compile, tester index.js
+# Si index.js compile, tester mysql
+
 
 def test():
     logging.basicConfig(level=logging.INFO)
