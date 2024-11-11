@@ -1,5 +1,7 @@
 {
     "workers": [
+        "host.docker.internal",
         "host.docker.internal"
-    ]
+    ],
+    "master": "host.docker.internal"
 }
