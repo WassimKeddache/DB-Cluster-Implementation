@@ -30,12 +30,12 @@ for (let worker of workers) {
 
 let bestWorkerInstance = '';
 
-const masterConnection = mysql.createConnection({
-    host: master,       // Adresse de l'hôte MySQL (localhost si local)
-    user: 'root',            // Nom d'utilisateur MySQL
-    password: 'root_password', // Le mot de passe MySQL
-    database: 'sakila',      // Nom de la base de données (par exemple, 'sakila')
-});
+// const masterConnection = mysql.createConnection({
+//     host: master,       // Adresse de l'hôte MySQL (localhost si local)
+//     user: 'root',            // Nom d'utilisateur MySQL
+//     password: 'root_password', // Le mot de passe MySQL
+//     database: 'sakila',      // Nom de la base de données (par exemple, 'sakila')
+// });
 
 
 const getBestWorker = async (workers) => {
@@ -88,26 +88,26 @@ const loopBestWorker = async () => {
     
 loopBestWorker();
 
-app.post('/write', (req, res, next) => {
-    const actor = req.body;
-    const connection = masterConnection;
-    connection.query('INSERT INTO actor SET ?', actor, (err, result) => {
-        if (err) {
-            console.error(err);
-            res.status(500).send
-        }
-        res.send(result);
-        for (let worker of workers) {
-            const connection = workerDict[worker];
-            connection.query('INSERT INTO actor SET ?', actor, (err, result) => {
-                if (err) {
-                    console.error(err);
-                    res.status(500).send
-                }
-            });
-        }
-    });
-});
+// app.post('/write', (req, res, next) => {
+//     const actor = req.body;
+//     const connection = masterConnection;
+//     connection.query('INSERT INTO actor SET ?', actor, (err, result) => {
+//         if (err) {
+//             console.error(err);
+//             res.status(500).send
+//         }
+//         res.send(result);
+//         for (let worker of workers) {
+//             const connection = workerDict[worker];
+//             connection.query('INSERT INTO actor SET ?', actor, (err, result) => {
+//                 if (err) {
+//                     console.error(err);
+//                     res.status(500).send
+//                 }
+//             });
+//         }
+//     });
+// });
 
 app.get('/read/customized', (req, res, next) => {
     // Send read request to best slave instance
@@ -138,20 +138,20 @@ app.get('/read/random', (req, res, next) => {
     });
 });
 
-app.get('/read/direct-hit', (req, res, next) => {
-    // Send read request to master
-    console.log(`Sending read request to master at ip ${master}`);
-    const connection = masterConnection;
+// app.get('/read/direct-hit', (req, res, next) => {
+//     // Send read request to master
+//     console.log(`Sending read request to master at ip ${master}`);
+//     const connection = masterConnection;
 
-    connection.query('SELECT * FROM actor', (err, rows) => {
-        if (err) {
-            console.error(err);
-            res.status(500).send
-        }
-        res.send(rows);
-    });
+//     connection.query('SELECT * FROM actor', (err, rows) => {
+//         if (err) {
+//             console.error(err);
+//             res.status(500).send
+//         }
+//         res.send(rows);
+//     });
     
-});
+// });
 
 app.listen(port, hostname, () => {
     console.log(`App listening on ${hostname}:${port}`);

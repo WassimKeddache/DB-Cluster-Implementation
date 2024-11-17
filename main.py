@@ -4,7 +4,7 @@ import ssh_interface as ssh
 import os
 import json
 # TODO 
-# Deployer db et tester avec proxy ouvert
+# Tester proxy ouvert db fermé
 # Tester write
 
 
@@ -29,11 +29,19 @@ def test():
     logger.info("Gatekeeper created")
     
     logger.info("Creating MySQL cluster workers")
-    response = aws.create_instances("t2.micro", 1, internet_facing_sg_id) # A changer pour internal_sg_id
+    response = aws.create_instances("t2.micro", 1, internal_sg_id)
     aws.wait_for_instance(response["Instances"][0]["InstanceId"])
     dns_worker = aws.get_dns_name(response["Instances"][0]["InstanceId"])
     dns_dict['workers'] = [dns_worker]
     logger.info("Worker created")
+    
+    logger.info("Creating Proxy")
+    response = aws.create_instances("t2.micro", 1, internet_facing_sg_id)
+    aws.wait_for_instance(response["Instances"][0]["InstanceId"])
+    dns_proxy = aws.get_dns_name(response["Instances"][0]["InstanceId"])
+    dns_dict['proxy'] = dns_proxy
+    logger.info("Proxy created")
+    
 
     with open('./gatekeeper/dns_dict.json', 'w') as file:
         json.dump(dns_dict, file, indent=4)
@@ -51,6 +59,7 @@ def test():
     ssh.scp(env, "project_pem_key.pem")
     ssh.scp(env, "./gatekeeper", True)
     ssh.scp(env, "./db", True)
+    ssh.scp(env, "./proxy", True)
     ssh.ssh(env, "cd gatekeeper && chmod +x boot.sh && dos2unix boot.sh && ./boot.sh")
     
 if __name__ == "__main__":

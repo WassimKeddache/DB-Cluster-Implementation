@@ -7,8 +7,10 @@ echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] 
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
-cd /home/ubuntu/
+cd /home/ubuntu/gatekeeper
 
+cp dns_dict.json /home/ubuntu/db
+cp dns_dict.json /home/ubuntu/proxy
 
 # Build the worker image
 cd /home/ubuntu/db
@@ -16,6 +18,11 @@ sudo docker build -t db_node .
 sudo docker save -o db_node.tar db_node
 sudo chmod 644 db_node.tar
 
+# Build the proxy image
+cd /home/ubuntu/proxy
+sudo docker build -t proxy .
+sudo docker save -o proxy.tar proxy
+sudo chmod 644 proxy.tar
 
 cd /home/ubuntu/gatekeeper
 

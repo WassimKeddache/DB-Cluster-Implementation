@@ -128,7 +128,7 @@ def create_sg_internal(vpc_id, external_sg_id):
                     'ToPort': 22,
                     'UserIdGroupPairs': [
                         {
-                        'Description': 'HTTP access from other instances',
+                        'Description': 'SSH access from other instances',
                         'GroupId': external_sg_id
                         }
                     ]
@@ -150,7 +150,7 @@ def create_sg_internal(vpc_id, external_sg_id):
                     'ToPort': 22,
                     'UserIdGroupPairs': [
                         {
-                        'Description': 'HTTP access from other instances',
+                        'Description': 'SSH access from other instances',
                         'GroupId': internal_sg_id
                         }
                     ]
@@ -163,6 +163,28 @@ def create_sg_internal(vpc_id, external_sg_id):
                         {
                         'Description': 'HTTP access from other instances',
                         'GroupId': internal_sg_id
+                        }
+                    ]
+                },
+                {
+                    'IpProtocol': 'tcp',
+                    'FromPort': 3306,
+                    'ToPort': 3306,
+                    'UserIdGroupPairs': [
+                        {
+                            'Description': 'MySQL access from internal instances',
+                            'GroupId': internal_sg_id
+                        }
+                    ]
+                },
+                {
+                    'IpProtocol': 'tcp',
+                    'FromPort': 3306,
+                    'ToPort': 3306,
+                    'UserIdGroupPairs': [
+                        {
+                            'Description': 'MySQL access from external instances', # TODO A RETIRER QUAND ON AURA UN PROXY
+                            'GroupId': external_sg_id
                         }
                     ]
                 }

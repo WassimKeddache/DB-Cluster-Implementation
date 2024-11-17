@@ -29,13 +29,27 @@ def workers_init(instances_dns):
             "host": instance,
         }
 
-        ssh(env, "echo 'Hello, World!'", first_connection=True)
+        ssh(env, "echo 'Hello, Worker!'", first_connection=True)
         scp(env, "../db", is_dir=True)
         scp(env, "./docker-packages", is_dir=True)
         scp(env, "./dns_dict.json")
         ssh(env, "cd db && chmod +x boot.sh && ./boot.sh")
 
         logger.info(f"Worker {instance} initialized")
+        
+def proxy_init(proxy_dns):
+    env = {
+        "key_filename": '../project_pem_key.pem',
+        "user": "ubuntu",
+        "host": proxy_dns,
+    }
+    
+    ssh(env, "echo 'Hello, Proxy!'", first_connection=True)
+    scp(env, "../proxy", is_dir=True)
+    scp(env, "./docker-packages", is_dir=True)
+    scp(env, "./dns_dict.json")
+    ssh(env, "../project_pem_key.pem")
+    ssh(env, "cd proxy && chmod +x boot.sh && ./boot.sh")
 
 if __name__ == "__main__":
     dns_dict = {}
@@ -44,3 +58,4 @@ if __name__ == "__main__":
         dns_dict = json.load(file)
     
     workers_init(dns_dict["workers"])
+    proxy_init(dns_dict["proxy"])
