@@ -89,7 +89,24 @@ const loopBestWorker = async () => {
 loopBestWorker();
 
 app.post('/write', (req, res, next) => {
-    
+    const actor = req.body;
+    const connection = masterConnection;
+    connection.query('INSERT INTO actor SET ?', actor, (err, result) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send
+        }
+        res.send(result);
+        for (let worker of workers) {
+            const connection = workerDict[worker];
+            connection.query('INSERT INTO actor SET ?', actor, (err, result) => {
+                if (err) {
+                    console.error(err);
+                    res.status(500).send
+                }
+            });
+        }
+    });
 });
 
 app.get('/read/customized', (req, res, next) => {

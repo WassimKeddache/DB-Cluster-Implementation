@@ -4,9 +4,8 @@ import ssh_interface as ssh
 import os
 import json
 # TODO 
-# Tester l'image docker dans gateway sans lancer db_worker
-# Si image compile, tester index.js
-# Si index.js compile, tester mysql
+# Deployer db et tester avec proxy ouvert
+# Tester write
 
 
 def test():
@@ -24,13 +23,13 @@ def test():
     dns_dict = {}
 
     logger.info("Creating Gatekeeper")
-    response = aws.create_instances("t2.micro", 1, internet_facing_sg_id)
+    response = aws.create_instances("t2.micro", 1, internet_facing_sg_id) 
     gatekeeper_instance = response["Instances"][0]["InstanceId"]
     aws.wait_for_instance(gatekeeper_instance)
     logger.info("Gatekeeper created")
     
     logger.info("Creating MySQL cluster workers")
-    response = aws.create_instances("t2.micro", 1, internal_sg_id)
+    response = aws.create_instances("t2.micro", 1, internet_facing_sg_id) # A changer pour internal_sg_id
     aws.wait_for_instance(response["Instances"][0]["InstanceId"])
     dns_worker = aws.get_dns_name(response["Instances"][0]["InstanceId"])
     dns_dict['workers'] = [dns_worker]
@@ -51,7 +50,7 @@ def test():
     ssh.ssh(env, "sudo apt-get update -y && sudo apt-get install dos2unix", first_connection=True)
     ssh.scp(env, "project_pem_key.pem")
     ssh.scp(env, "./gatekeeper", True)
-    ssh.scp(env, "./db_worker", True)
+    ssh.scp(env, "./db", True)
     ssh.ssh(env, "cd gatekeeper && chmod +x boot.sh && dos2unix boot.sh && ./boot.sh")
     
 if __name__ == "__main__":

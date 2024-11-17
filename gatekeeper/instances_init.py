@@ -30,10 +30,10 @@ def workers_init(instances_dns):
         }
 
         ssh(env, "echo 'Hello, World!'", first_connection=True)
-        scp(env, "../db_worker", is_dir=True)
-        scp(env, "../docker-packages", is_dir=True)
+        scp(env, "../db", is_dir=True)
+        scp(env, "./docker-packages", is_dir=True)
         scp(env, "./dns_dict.json")
-        ssh(env, "cd db_worker && chmod +x boot.sh")
+        ssh(env, "cd db && chmod +x boot.sh && ./boot.sh")
 
         logger.info(f"Worker {instance} initialized")
 
