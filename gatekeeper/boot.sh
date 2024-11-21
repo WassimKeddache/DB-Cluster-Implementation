@@ -11,8 +11,9 @@ cd /home/ubuntu/gatekeeper
 
 cp dns_dict.json /home/ubuntu/db
 cp dns_dict.json /home/ubuntu/proxy
+cp dns_dict.json /home/ubuntu/trusted_host
 
-# Build the worker image
+# Build the db image
 cd /home/ubuntu/db
 sudo docker build -t db_node .
 sudo docker save -o db_node.tar db_node
@@ -23,6 +24,12 @@ cd /home/ubuntu/proxy
 sudo docker build -t proxy .
 sudo docker save -o proxy.tar proxy
 sudo chmod 644 proxy.tar
+
+# Build the trusted host image
+cd /home/ubuntu/trusted_host
+sudo docker build -t trusted-host .
+sudo docker save -o trusted-host.tar trusted-host
+sudo chmod 644 trusted-host.tar
 
 cd /home/ubuntu/gatekeeper
 
@@ -48,3 +55,6 @@ source env/bin/activate
 
 
 python instances_init.py
+
+sudo docker build -t gatekeeper .
+sudo docker run -d -p 80:80 gatekeeper

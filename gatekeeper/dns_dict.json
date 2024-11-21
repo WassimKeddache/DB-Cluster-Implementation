@@ -1,6 +1,7 @@
 {
     "workers": [
-        "ec2-54-175-46-88.compute-1.amazonaws.com"
+        "ec2-34-230-10-51.compute-1.amazonaws.com"
     ],
-    "trusted-host": "ec2-52-207-228-174.compute-1.amazonaws.com"
+    "proxy": "ec2-54-227-13-162.compute-1.amazonaws.com",
+    "trusted_host": "ec2-54-167-55-28.compute-1.amazonaws.com"
 }

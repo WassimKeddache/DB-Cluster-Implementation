@@ -60,7 +60,7 @@ const getBestWorker = async (workers) => {
 
 const sendHealthCheck = async (worker) => {
     return new Promise((resolve, reject) => {
-        console.log(`http://${worker}}/`);
+        console.log(`http://${worker}/`);
         const startTime = Date.now();
         const connection = workerDict[worker];
 

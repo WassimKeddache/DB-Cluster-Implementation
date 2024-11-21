@@ -51,6 +51,20 @@ def proxy_init(proxy_dns):
     ssh(env, "../project_pem_key.pem")
     ssh(env, "cd proxy && chmod +x boot.sh && ./boot.sh")
 
+def trusted_host_init(trusted_host_dns):
+    env = {
+        "key_filename": '../project_pem_key.pem',
+        "user": "ubuntu",
+        "host": trusted_host_dns,
+    }
+    
+    ssh(env, "echo 'Hello, Trusted Host!'", first_connection=True)
+    scp(env, "../trusted_host", is_dir=True)
+    scp(env, "./docker-packages", is_dir=True)
+    scp(env, "./dns_dict.json")
+    ssh(env, "../project_pem_key.pem")
+    ssh(env, "cd trusted_host && chmod +x boot.sh && ./boot.sh")
+
 if __name__ == "__main__":
     dns_dict = {}
     
@@ -59,3 +73,4 @@ if __name__ == "__main__":
     
     workers_init(dns_dict["workers"])
     proxy_init(dns_dict["proxy"])
+    trusted_host_init(dns_dict["trusted_host"])

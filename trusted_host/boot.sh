@@ -10,7 +10,7 @@ sudo apt-get install -f
 
 sudo docker --version
 
-cd /home/ubuntu/trusted-host
+cd /home/ubuntu/trusted_host
 
 sudo docker load -i trusted-host.tar
 

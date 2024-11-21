@@ -36,11 +36,18 @@ def test():
     logger.info("Worker created")
     
     logger.info("Creating Proxy")
-    response = aws.create_instances("t2.micro", 1, internet_facing_sg_id)
+    response = aws.create_instances("t2.micro", 1, internal_sg_id)
     aws.wait_for_instance(response["Instances"][0]["InstanceId"])
     dns_proxy = aws.get_dns_name(response["Instances"][0]["InstanceId"])
     dns_dict['proxy'] = dns_proxy
     logger.info("Proxy created")
+    
+    logger.info("Creating Trusted Host")
+    response = aws.create_instances("t2.micro", 1, internal_sg_id)
+    aws.wait_for_instance(response["Instances"][0]["InstanceId"])
+    dns_trusted_host = aws.get_dns_name(response["Instances"][0]["InstanceId"])
+    dns_dict['trusted_host'] = dns_trusted_host
+    logger.info("Trusted Host created")
     
 
     with open('./gatekeeper/dns_dict.json', 'w') as file:
@@ -60,6 +67,7 @@ def test():
     ssh.scp(env, "./gatekeeper", True)
     ssh.scp(env, "./db", True)
     ssh.scp(env, "./proxy", True)
+    ssh.scp(env, "./trusted_host", True)
     ssh.ssh(env, "cd gatekeeper && chmod +x boot.sh && dos2unix boot.sh && ./boot.sh")
     
 if __name__ == "__main__":

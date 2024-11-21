@@ -10,7 +10,7 @@ const hostname = '0.0.0.0';
 const data = fs.readFileSync('./dns_dict.json', 'utf8');
 const dnsDict = JSON.parse(data);
 const trustedHost = dnsDict['trusted_host'];
-
+const AUTH_TOKEN = "HelloWorld";
 
 app.post('/write', async (req, res, next) => {
     try {
