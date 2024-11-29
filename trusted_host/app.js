@@ -1,8 +1,8 @@
 const http = require('http');
 const fs = require('fs');
 const express = require('express');
-const mysql = require('mysql2');
 const app = express();
+app.use(express.json());
 const port = 80;
 const hostname = '0.0.0.0';
 
@@ -12,9 +12,9 @@ const dnsDict = JSON.parse(data);
 const proxy = dnsDict['proxy'];
 
 
-app.post('/write', async (req, res, next) => {
+app.post('/', async (req, res, next) => {
     try {
-        const response = await fetch(`http://${proxy}/write`, {
+        const response = await fetch(`http://${proxy}/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -29,9 +29,9 @@ app.post('/write', async (req, res, next) => {
     }
 });
 
-app.get('/read/customized', async (req, res, next) => {
+app.get('/customized', async (req, res, next) => {
     try {
-        const response = await fetch(`http://${proxy}/read/customized`);
+        const response = await fetch(`http://${proxy}/customized`);
         const data = await response.json();
         res.json(data);
     }
@@ -40,9 +40,9 @@ app.get('/read/customized', async (req, res, next) => {
     }
 });
 
-app.get('/read/random', async (req, res, next) => {
+app.get('/random', async (req, res, next) => {
     try {
-        const response = await fetch(`http://${proxy}/read/random`);
+        const response = await fetch(`http://${proxy}/random`);
         const data = await response.json();
         res.json(data);
     }
@@ -51,9 +51,9 @@ app.get('/read/random', async (req, res, next) => {
     }
 });
 
-app.get('/read/direct-hit', async (req, res, next) => {
+app.get('/direct-hit', async (req, res, next) => {
     try {
-        const response = await fetch(`http://${proxy}/read/direct-hit`);
+        const response = await fetch(`http://${proxy}/direct-hit`);
         const data = await response.json();
         res.json(data);
     }

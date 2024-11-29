@@ -1,8 +1,8 @@
 const http = require('http');
 const fs = require('fs');
 const express = require('express');
-const mysql = require('mysql2');
 const app = express();
+app.use(express.json());
 const port = 80;
 const hostname = '0.0.0.0';
 
@@ -12,14 +12,14 @@ const dnsDict = JSON.parse(data);
 const trustedHost = dnsDict['trusted_host'];
 const AUTH_TOKEN = "HelloWorld";
 
-app.post('/write', async (req, res, next) => {
+app.post('/', async (req, res, next) => {
     try {
         const clientToken = req.headers['authorization'];
         if (clientToken !== `Bearer ${AUTH_TOKEN}`) {
             return res.status(403).send({ message: "Unauthorized" });
         }
 
-        const response = await fetch(`http://${trustedHost}/write`, {
+        const response = await fetch(`http://${trustedHost}/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -37,14 +37,14 @@ app.post('/write', async (req, res, next) => {
         res.status(500).send({ message: "Server error", error: e.message });
     }
 });
-app.get('/read/customized', async (req, res, next) => {
+app.get('/customized', async (req, res, next) => {
     try {
         const clientToken = req.headers['authorization'];
         if (clientToken !== `Bearer ${AUTH_TOKEN}`) {
             return res.status(403).send({ message: "Unauthorized" });
         }
 
-        const response = await fetch(`http://${trustedHost}/read/customized`);
+        const response = await fetch(`http://${trustedHost}/customized`);
 
         if (!response.ok) {
             throw new Error(`Erreur du serveur distant: ${response.statusText}`);
@@ -57,14 +57,14 @@ app.get('/read/customized', async (req, res, next) => {
     }
 });
 
-app.get('/read/random', async (req, res, next) => {
+app.get('/random', async (req, res, next) => {
     try {
         const clientToken = req.headers['authorization'];
         if (clientToken !== `Bearer ${AUTH_TOKEN}`) {
             return res.status(403).send({ message: "Unauthorized" });
         }
 
-        const response = await fetch(`http://${trustedHost}/read/random`);
+        const response = await fetch(`http://${trustedHost}/random`);
 
         if (!response.ok) {
             throw new Error(`Erreur du serveur distant: ${response.statusText}`);
@@ -77,14 +77,14 @@ app.get('/read/random', async (req, res, next) => {
     }
 });
 
-app.get('/read/direct-hit', async (req, res, next) => {
+app.get('/direct-hit', async (req, res, next) => {
     try {
         const clientToken = req.headers['authorization'];
         if (clientToken !== `Bearer ${AUTH_TOKEN}`) {
             return res.status(403).send({ message: "Unauthorized" });
         }
 
-        const response = await fetch(`http://${trustedHost}/read/direct-hit`);
+        const response = await fetch(`http://${trustedHost}/direct-hit`);
 
         if (!response.ok) {
             throw new Error(`Erreur du serveur distant: ${response.statusText}`);

@@ -36,6 +36,21 @@ def workers_init(instances_dns):
         ssh(env, "cd db && chmod +x boot.sh && ./boot.sh")
 
         logger.info(f"Worker {instance} initialized")
+
+def master_init(master_dns):
+    env = {
+        "key_filename": '../project_pem_key.pem',
+        "user": "ubuntu",
+        "host": master_dns,
+    }
+    
+    ssh(env, "echo 'Hello, Master!'", first_connection=True)
+    scp(env, "../db", is_dir=True)
+    scp(env, "./docker-packages", is_dir=True)
+    scp(env, "./dns_dict.json")
+    ssh(env, "cd db && chmod +x boot.sh && ./boot.sh")
+    
+    logger.info(f"Master {master_dns} initialized")
         
 def proxy_init(proxy_dns):
     env = {
@@ -72,5 +87,6 @@ if __name__ == "__main__":
         dns_dict = json.load(file)
     
     workers_init(dns_dict["workers"])
+    master_init(dns_dict["master"])
     proxy_init(dns_dict["proxy"])
     trusted_host_init(dns_dict["trusted_host"])

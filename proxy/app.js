@@ -3,6 +3,8 @@ const fs = require('fs');
 const express = require('express');
 const mysql = require('mysql2');
 const app = express();
+
+app.use(express.json());
 const port = 80;
 const hostname = '0.0.0.0';
 
@@ -16,13 +18,14 @@ let master = dnsDict['master'];
 
 
 let workerDict = {};
+
 for (let worker of workers) {
     console.log(`Connecting to ${worker}`);
     const connection = mysql.createConnection({
-        host: worker,       // Adresse de l'hôte MySQL (localhost si local)
-        user: 'root',            // Nom d'utilisateur MySQL
-        password: 'root_password', // Le mot de passe MySQL
-        database: 'sakila',      // Nom de la base de données (par exemple, 'sakila')
+        host: worker,
+        user: 'root',           
+        password: 'root_password',
+        database: 'sakila',
       });
 
       workerDict[worker] = connection;
@@ -30,12 +33,12 @@ for (let worker of workers) {
 
 let bestWorkerInstance = '';
 
-// const masterConnection = mysql.createConnection({
-//     host: master,       // Adresse de l'hôte MySQL (localhost si local)
-//     user: 'root',            // Nom d'utilisateur MySQL
-//     password: 'root_password', // Le mot de passe MySQL
-//     database: 'sakila',      // Nom de la base de données (par exemple, 'sakila')
-// });
+const masterConnection = mysql.createConnection({
+    host: master,
+    user: 'root',
+    password: 'root_password',
+    database: 'sakila',
+});
 
 
 const getBestWorker = async (workers) => {
@@ -85,31 +88,64 @@ const loopBestWorker = async () => {
         bestWorkerInstance = await getBestWorker(workers);
     }, 100);
 }
-    
-loopBestWorker();
 
-// app.post('/write', (req, res, next) => {
-//     const actor = req.body;
-//     const connection = masterConnection;
-//     connection.query('INSERT INTO actor SET ?', actor, (err, result) => {
-//         if (err) {
-//             console.error(err);
-//             res.status(500).send
-//         }
-//         res.send(result);
-//         for (let worker of workers) {
-//             const connection = workerDict[worker];
-//             connection.query('INSERT INTO actor SET ?', actor, (err, result) => {
-//                 if (err) {
-//                     console.error(err);
-//                     res.status(500).send
-//                 }
-//             });
-//         }
-//     });
-// });
+function retryQuery(connection, query, data, retries = 3, delay = 1000) {
+    return new Promise((resolve, reject) => {
+        const attempt = (retryCount) => {
+            connection.query(query, data, (err, result) => {
+                if (err) {
+                    if (retryCount > 0) {
+                        console.error(`Retrying... Attempts left: ${retryCount}. Error:`, err);
+                        setTimeout(() => attempt(retryCount - 1), delay);
+                    } else {
+                        reject(err);
+                    }
+                } else {
+                    resolve(result);
+                }
+            });
+        };
+        attempt(retries);
+    });
+}
 
-app.get('/read/customized', (req, res, next) => {
+
+app.post('/', async (req, res) => {
+    const actor = req.body;
+    console.log('Inserting actor:', req.body);
+    const mainQuery = 'INSERT INTO actor SET ?';
+
+    try {
+        const mainResult = await retryQuery(masterConnection, mainQuery, actor);
+
+        const workerPromises = workers.map(worker => {
+            const workerConnection = workerDict[worker];
+
+            return retryQuery(workerConnection, mainQuery, actor)
+                .then(result => {
+                    console.log(`Worker ${worker} insertion successful:`, result);
+                    return { worker, success: true };
+                })
+                .catch(err => {
+                    console.error(`Worker ${worker} insertion failed:`, err);
+                    return { worker, success: false, error: err.message };
+                });
+        });
+
+        const workerResults = await Promise.all(workerPromises);
+
+        res.status(200).json({
+            message: 'Insertion complete',
+            main: mainResult,
+            workers: workerResults,
+        });
+    } catch (err) {
+        console.error('Failed to insert into the main database:', err);
+        res.status(500).json({ message: 'Insertion failed', error: err.message });
+    }
+});
+
+app.get('/customized', (req, res, next) => {
     // Send read request to best slave instance
     console.log(`Sending read request to ${bestWorkerInstance}`);
     const connection = workerDict[bestWorkerInstance];
@@ -118,40 +154,53 @@ app.get('/read/customized', (req, res, next) => {
             console.error(err);
             res.status(500).send
         }
-        res.send(rows);
+        res.status(200).json({
+            source: "Worker: " + bestWorkerInstance,
+            data: rows,
+        });
     });
 });
 
-app.get('/read/random', (req, res, next) => {
+app.get('/random', (req, res, next) => {
     // Send read request to random slave instance
     const randomWorker = workers[Math.floor(Math.random() * workers.length)];
     console.log(`Sending read request to ${randomWorker}`);
-
+    
     const connection = workerDict[randomWorker];
-
+    
     connection.query('SELECT * FROM actor', (err, rows) => {
         if (err) {
             console.error(err);
             res.status(500).send
         }
-        res.send(rows);
+
+        res.status(200).json({
+            source: "Worker: " + randomWorker,
+            data: rows,
+        });
     });
 });
 
-// app.get('/read/direct-hit', (req, res, next) => {
-//     // Send read request to master
-//     console.log(`Sending read request to master at ip ${master}`);
-//     const connection = masterConnection;
-
-//     connection.query('SELECT * FROM actor', (err, rows) => {
-//         if (err) {
-//             console.error(err);
-//             res.status(500).send
-//         }
-//         res.send(rows);
-//     });
+app.get('/direct-hit', (req, res, next) => {
+    // Send read request to master
+    console.log(`Sending read request to master at ip ${master}`);
+    const connection = masterConnection;
     
-// });
+    connection.query('SELECT * FROM actor', (err, rows) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send
+        }
+
+        res.status(200).json({
+            source: "Master: " + master,
+            data: rows,
+        });
+    });
+    
+});
+
+loopBestWorker();
 
 app.listen(port, hostname, () => {
     console.log(`App listening on ${hostname}:${port}`);

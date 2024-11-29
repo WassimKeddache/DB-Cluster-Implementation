@@ -56,5 +56,9 @@ source env/bin/activate
 
 python instances_init.py
 
+sudo apt-get install sysbench -y
+python db_benchmark.py
+
+
 sudo docker build -t gatekeeper .
 sudo docker run -d -p 80:80 gatekeeper
