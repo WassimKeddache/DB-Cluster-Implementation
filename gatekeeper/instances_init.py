@@ -63,7 +63,6 @@ def proxy_init(proxy_dns):
     scp(env, "../proxy", is_dir=True)
     scp(env, "./docker-packages", is_dir=True)
     scp(env, "./dns_dict.json")
-    ssh(env, "../project_pem_key.pem")
     ssh(env, "cd proxy && chmod +x boot.sh && ./boot.sh")
 
 def trusted_host_init(trusted_host_dns):
@@ -77,7 +76,6 @@ def trusted_host_init(trusted_host_dns):
     scp(env, "../trusted_host", is_dir=True)
     scp(env, "./docker-packages", is_dir=True)
     scp(env, "./dns_dict.json")
-    ssh(env, "../project_pem_key.pem")
     ssh(env, "cd trusted_host && chmod +x boot.sh && ./boot.sh")
 
 if __name__ == "__main__":

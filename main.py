@@ -4,12 +4,11 @@ import ssh_interface as ssh
 import os
 import json
 # TODO 
-# Tester write
-# Tester 1 master 2 workers
-# Changer read
-# Tester le script de test de la db
 
-def test():
+# Tester le script de cloudwatch
+# Mettre les bons format de vm
+
+def execute():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 
@@ -85,18 +84,4 @@ def test():
     
     
 if __name__ == "__main__":
-    test()
-    # aws.wait_for_instance("i-0018c877311b568af")
-    # env = {
-    #     "key_filename": 'project_pem_key.pem',
-    #     "user": "ubuntu",
-    #     "host": "ec2-54-209-251-144.compute-1.amazonaws.com"
-    #     }
-    # ssh.scp(env, "./db_worker", True)
-    # env = {
-    #         "key_filename": 'project_pem_key.pem',
-    #         "user": "ubuntu",
-    #         "host": "ec2-44-206-0-154.compute-1.amazonaws.com",
-    #     }
-    # os.system(f"scp -i ./project_pem_key.pem ubuntu@{env['host']}:/home/ubuntu/gatekeeper/db_benchmark_results.txt ./benchmarks/db_benchmark_results.txt")
-    
+    execute()
