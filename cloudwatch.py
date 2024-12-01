@@ -40,7 +40,7 @@ def get_cloudwatch_infos(fig_name, end_time):
     dns_names = workers + [master]
     
     ips = resolve_dns_to_ip(dns_names)
-    print(ips)
+
     described_instances = ec2_client.describe_instances() 
 
     instances = []
@@ -72,7 +72,7 @@ def get_cloudwatch_infos(fig_name, end_time):
                                 }
                             ]
                         },
-                        'Period': 300,
+                        'Period': 30,
                         'Stat': 'Maximum',
                         'Unit': 'Percent'
                     },
@@ -81,7 +81,7 @@ def get_cloudwatch_infos(fig_name, end_time):
     
     response = cloudwatch_client.get_metric_data(
         MetricDataQueries = metric_data_queries,
-        StartTime = end_time - timedelta(seconds=300),
+        StartTime = end_time - timedelta(seconds=30),
         EndTime = end_time
     )
 
@@ -91,7 +91,7 @@ def get_cloudwatch_infos(fig_name, end_time):
     x_labels = [role_mapping[ip] for ip in ips]
     y_values = [data_results['Values'][0] if data_results['Values'] else 0 for data_results in response['MetricDataResults']]
     legend_entries = [f"{role_mapping[ip]} -> {dns}" for dns, ip in zip(dns_names, ips)]
-
+    print(response['MetricDataResults'])
     s = pd.Series(y_values, index=x_labels)
     ax = s.plot(
         kind="bar",
@@ -130,7 +130,6 @@ async def call_endpoint_http(session, request_num, url, method="GET", data=None)
             async with session.get(url, headers=headers) as response:
                 status_code = response.status
                 response_json = await response.json()
-                print ( f"Request { request_num }: Status Code : { status_code}")
                 worker_name = response_json.get("source", "").split(":")[1].strip()
                 worker_request_counts[worker_name] = worker_request_counts.get(worker_name, 0) + 1
                 return status_code, response_json
@@ -143,8 +142,8 @@ async def call_endpoint_http(session, request_num, url, method="GET", data=None)
 
 
 async def benchmark(gatekeeper_url):
-    num_requests = 500
-    read_requests = ['random','direct-hit', 'customized']
+    num_requests = 1000
+    read_requests = ['direct-hit']
     
     
     for request in read_requests:
@@ -173,11 +172,11 @@ async def benchmark(gatekeeper_url):
         
         logger.info(worker_request_counts)
         worker_request_counts.clear()
+        end_time = datetime.now(timezone.utc)
+        logger.info(f"Ending benchmarking for read/{request}: {url} at {end_time}")
         logger.info("Waiting for 5 minutes before getting Cloudwatch metrics")
         time.sleep(300)
         
-        end_time = datetime.now(timezone.utc)
-        logger.info(f"Ending benchmarking for read/{request}: {url} at {end_time}")
         
         fig_name = f"cloudwatch_{request}.png"
         get_cloudwatch_infos(fig_name, end_time)

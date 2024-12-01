@@ -1,64 +1,61 @@
 const http = require('http');
 const fs = require('fs');
 const express = require('express');
+const axios = require('axios'); // Importing axios
 const app = express();
 app.use(express.json());
 const port = 80;
 const hostname = '0.0.0.0';
 
-
 const data = fs.readFileSync('./dns_dict.json', 'utf8');
 const dnsDict = JSON.parse(data);
 const proxy = dnsDict['proxy'];
 
-
 app.post('/', async (req, res, next) => {
     try {
-        const response = await fetch(`http://${proxy}/`, {
-            method: 'POST',
+        const response = await axios.post(`http://${proxy}/`, req.body, {
             headers: {
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(req.body)
+            }
         });
-        const data = await response.json();
-        res.json(data);
+        res.json(response.data);
     }
     catch (e) {
         console.log(e);
+        res.status(500).send({ message: "Error while processing request" });
     }
 });
 
 app.get('/customized', async (req, res, next) => {
     try {
-        const response = await fetch(`http://${proxy}/customized`);
-        const data = await response.json();
-        res.json(data);
+        const response = await axios.get(`http://${proxy}/customized`);
+        res.json(response.data);
     }
     catch (e) {
         console.log(e);
+        res.status(500).send({ message: "Error while processing request" });
     }
 });
 
 app.get('/random', async (req, res, next) => {
     try {
-        const response = await fetch(`http://${proxy}/random`);
-        const data = await response.json();
-        res.json(data);
+        const response = await axios.get(`http://${proxy}/random`);
+        res.json(response.data);
     }
     catch (e) {
         console.log(e);
+        res.status(500).send({ message: "Error while processing request" });
     }
 });
 
 app.get('/direct-hit', async (req, res, next) => {
     try {
-        const response = await fetch(`http://${proxy}/direct-hit`);
-        const data = await response.json();
-        res.json(data);
+        const response = await axios.get(`http://${proxy}/direct-hit`);
+        res.json(response.data);
     }
     catch (e) {
         console.log(e);
+        res.status(500).send({ message: "Error while processing request" });
     }
 });
 

@@ -248,7 +248,6 @@ def wait_for_instance(instance_id):
     time.sleep(30)
 
 def get_dns_name(instance_id):
-    # TODO Get the private DNS name of the instance
     new_instance_desc = ec2.describe_instances(InstanceIds = [instance_id]) 
     new_instance = new_instance_desc['Reservations'][0]['Instances'][0]
     return new_instance['PublicDnsName']
