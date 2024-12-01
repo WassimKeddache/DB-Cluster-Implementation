@@ -1,4 +1,5 @@
 import asyncio
+from collections import defaultdict
 import logging
 import time
 import aiohttp
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 cloudwatch_client = boto3.client('cloudwatch', region_name = 'us-east-1')
 ec2_client = boto3.client('ec2', region_name="us-east-1")
+worker_request_counts = {}
 
 def resolve_dns_to_ip(dns_names):
     ip_addresses = []
@@ -27,7 +29,7 @@ def resolve_dns_to_ip(dns_names):
             print(f"Error: Unable to resolve {dns_name}")
     return ip_addresses
 
-def get_cloudwatch_infos(fig_name, start_time=datetime.now(timezone.utc), end_time=datetime.now(timezone.utc) - timedelta(minutes=10)):
+def get_cloudwatch_infos(fig_name, end_time):
     dns_dict = {}
     with open("./gatekeeper/dns_dict.json", "r") as file:
         dns_dict = json.load(file)
@@ -38,15 +40,20 @@ def get_cloudwatch_infos(fig_name, start_time=datetime.now(timezone.utc), end_ti
     dns_names = workers + [master]
     
     ips = resolve_dns_to_ip(dns_names)
+    print(ips)
     described_instances = ec2_client.describe_instances() 
 
     instances = []
     for reservation in described_instances['Reservations']:
         for instance in reservation['Instances']:
-            instances.append(instance)
+            if instance['State']['Name'] == 'running':
+                instances.append(instance)
 
+    
     ip_to_id = dict()
     for instance in instances:
+        if 'PublicIpAddress' not in instance:
+            continue
         if instance['PublicIpAddress'] in ips:
             ip_to_id[instance['PublicIpAddress']] = instance['InstanceId']
 
@@ -74,10 +81,10 @@ def get_cloudwatch_infos(fig_name, start_time=datetime.now(timezone.utc), end_ti
     
     response = cloudwatch_client.get_metric_data(
         MetricDataQueries = metric_data_queries,
-        StartTime = end_time - timedelta(seconds=30),
+        StartTime = end_time - timedelta(seconds=300),
         EndTime = end_time
     )
-    print(response)
+
     role_mapping = {ip: f"Worker {i+1}" for i, ip in enumerate(ips[:-1])}
     role_mapping[ips[-1]] = "Master"
 
@@ -107,12 +114,12 @@ def get_cloudwatch_infos(fig_name, start_time=datetime.now(timezone.utc), end_ti
     plt.subplots_adjust(left=0.15)
     plt.subplots_adjust(right=0.60) 
 
-    plt.savefig(fig_name)
+    plt.savefig(f'./benchmarks/{fig_name}')
 
 
 async def call_endpoint_http(session, request_num, url, method="GET", data=None):
     headers = {'content-type': 'application/json'}
-    
+    headers['Authorization'] = "Bearer " + "HelloWorld"
     try:
         if method.upper() == "POST":
             async with session.post(url, headers=headers, json=data) as response:
@@ -123,6 +130,9 @@ async def call_endpoint_http(session, request_num, url, method="GET", data=None)
             async with session.get(url, headers=headers) as response:
                 status_code = response.status
                 response_json = await response.json()
+                print ( f"Request { request_num }: Status Code : { status_code}")
+                worker_name = response_json.get("source", "").split(":")[1].strip()
+                worker_request_counts[worker_name] = worker_request_counts.get(worker_name, 0) + 1
                 return status_code, response_json
         else:
             logger.error(f"Request {request_num}: Unsupported HTTP method '{method}'")
@@ -133,9 +143,9 @@ async def call_endpoint_http(session, request_num, url, method="GET", data=None)
 
 
 async def benchmark(gatekeeper_url):
-    num_requests = 1000
-    read_requests = ['customized', 'random', 'direct-hit']
-    cloudwatch_info = {}
+    num_requests = 500
+    read_requests = ['random','direct-hit', 'customized']
+    
     
     for request in read_requests:
         start_time = datetime.now(timezone.utc)
@@ -147,35 +157,32 @@ async def benchmark(gatekeeper_url):
             tasks = [call_endpoint_http(session, i, url) for i in range(num_requests)]
             await asyncio.gather(*tasks)
 
+
+        logger.info("Finished benchmarking for read")        
+        
+        data = {
+            "first_name": "ZINEB",
+            "last_name": "YOUSSOUFI"
+        }
+        
+        url = f"{gatekeeper_url}/"
+
+        # async with aiohttp.ClientSession() as session:
+        #     tasks = [call_endpoint_http(session, i, url, "POST", data) for i in range(num_requests)]
+        #     await asyncio.gather(*tasks)
+        
+        logger.info(worker_request_counts)
+        worker_request_counts.clear()
+        logger.info("Waiting for 5 minutes before getting Cloudwatch metrics")
+        time.sleep(300)
+        
         end_time = datetime.now(timezone.utc)
         logger.info(f"Ending benchmarking for read/{request}: {url} at {end_time}")
         
-        cloudwatch_info[request] = (start_time, end_time)
+        fig_name = f"cloudwatch_{request}.png"
+        get_cloudwatch_infos(fig_name, end_time)
     
-    # Write request
-    
-    start_time = datetime.now(timezone.utc)
-    url = f"{gatekeeper_url}/"
-    
-    logger.info(f"Starting benchmarking for write: {url} at {start_time}")
-    
-    data = {
-        "first_name": "ZINEB",
-        "last_name": "YOUSSOUFI"
-    }
-    
-    async with aiohttp.ClientSession() as session:
-        tasks = [call_endpoint_http(session, i, url, "POST", data) for i in range(num_requests)]
-        await asyncio.gather(*tasks)
-    
-    end_time = datetime.now(timezone.utc)
-    logger.info(f"Ending benchmarking for write: {url} at {end_time}")
-    cloudwatch_info["write"] = (start_time, end_time)
-    
-    logger.info("Waiting for 5 minutes before getting Cloudwatch metrics")
-    time.sleep(300)
-    for request, times in cloudwatch_info.items():
-        get_cloudwatch_infos(f"{request}.png", times[0], times[1])
+
 
 if __name__ == '__main__':
     dns_dict = {}
@@ -184,6 +191,6 @@ if __name__ == '__main__':
 
     gatekeeper_dns = dns_dict['gatekeeper']
     asyncio.run(benchmark(f"http://{gatekeeper_dns}"))
-
+    #get_cloudwatch_infos("cloudwatch.png", datetime.now(timezone.utc))
     
     

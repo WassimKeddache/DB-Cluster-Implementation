@@ -23,7 +23,7 @@ def execute():
     dns_dict = {}
 
     logger.info("Creating Gatekeeper")
-    response = aws.create_instances("t2.micro", 1, internet_facing_sg_id) 
+    response = aws.create_instances("t2.large", 1, internet_facing_sg_id) 
     gatekeeper_instance = response["Instances"][0]["InstanceId"]
     aws.wait_for_instance(gatekeeper_instance)
     dns_dict['gatekeeper'] = aws.get_dns_name(gatekeeper_instance)
@@ -45,14 +45,14 @@ def execute():
     dns_dict['master'] = dns_master
     
     logger.info("Creating Proxy")
-    response = aws.create_instances("t2.micro", 1, internal_sg_id)
+    response = aws.create_instances("t2.large", 1, internal_sg_id)
     aws.wait_for_instance(response["Instances"][0]["InstanceId"])
     dns_proxy = aws.get_dns_name(response["Instances"][0]["InstanceId"])
     dns_dict['proxy'] = dns_proxy
     logger.info("Proxy created")
     
     logger.info("Creating Trusted Host")
-    response = aws.create_instances("t2.micro", 1, internal_sg_id)
+    response = aws.create_instances("t2.large", 1, internal_sg_id)
     aws.wait_for_instance(response["Instances"][0]["InstanceId"])
     dns_trusted_host = aws.get_dns_name(response["Instances"][0]["InstanceId"])
     dns_dict['trusted_host'] = dns_trusted_host

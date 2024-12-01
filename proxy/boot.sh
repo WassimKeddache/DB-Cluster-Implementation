@@ -1,6 +1,6 @@
 cd /home/ubuntu/docker-packages/
 
-sudo dpkg -i ./containerd.io_1.7.23-1_amd64.deb
+sudo dpkg -i ./containerd.io_1.7.24-1_amd64.deb
 sudo dpkg -i ./docker-buildx-plugin_0.17.1-1~ubuntu.22.04~jammy_amd64.deb
 sudo dpkg -i ./docker-ce-cli_27.3.1-1~ubuntu.22.04~jammy_amd64.deb
 sudo dpkg -i ./docker-ce_27.3.1-1~ubuntu.22.04~jammy_amd64.deb

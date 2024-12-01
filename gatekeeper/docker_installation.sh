@@ -5,35 +5,47 @@
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
   echo "Please run as root"
-  exit
+  exit 1
 fi
+
 # Check if correct number of arguments provided
 if [ "$#" -ne 2 ]; then
   echo "Usage: $0 <architecture> <distro>"
-  exit
+  exit 1
 fi
+
 ARCHITECTURE=$1
 DISTRO=$2
+
 # Current directory
 CURRENT_DIR=$(pwd)
+
 # URL of the HTML page with the list of Docker files
 HTML_URL="https://download.docker.com/linux/ubuntu/dists/${DISTRO}/pool/stable/${ARCHITECTURE}/"
-# Fetch the list of available packages
-PACKAGE_LIST=$(curl -s "$HTML_URL" | grep -oP '(?<=href=")[^"]+(?=")' | grep -oP '.*\.deb' | sort -Vr)
-# Function to download a package with a progress bar
+
+# Function to download a specific package with a progress bar
 download_package() {
   PACKAGE=$1
-  FILENAME="${PACKAGE}"
-  URL="${HTML_URL}${FILENAME}"
-  echo "Downloading $FILENAME..."
-  curl -L --progress-bar "$URL" -o "$CURRENT_DIR/$FILENAME"
+  URL="${HTML_URL}${PACKAGE}"
+  echo "Downloading $PACKAGE..."
+  curl -L --progress-bar "$URL" -o "$CURRENT_DIR/$PACKAGE"
 }
-# Download the latest package for each type
-TYPES=("containerd.io" "docker-ce" "docker-ce-cli" "docker-buildx-plugin" "docker-compose-plugin")
-for TYPE in "${TYPES[@]}"; do
-  PACKAGE=$(echo "$PACKAGE_LIST" | grep "$TYPE" | head -n 1)
-  if [ -n "$PACKAGE" ]; then
-    download_package "$PACKAGE"
-  fi
+
+# List of required packages and their versions
+declare -A PACKAGES=(
+  ["containerd.io"]="containerd.io_1.7.24-1_amd64.deb"
+  ["docker-buildx-plugin"]="docker-buildx-plugin_0.17.1-1~ubuntu.22.04~jammy_amd64.deb"
+  ["docker-ce-cli"]="docker-ce-cli_27.3.1-1~ubuntu.22.04~jammy_amd64.deb"
+  ["docker-ce"]="docker-ce_27.3.1-1~ubuntu.22.04~jammy_amd64.deb"
+  ["docker-compose-plugin"]="docker-compose-plugin_2.29.7-1~ubuntu.22.04~jammy_amd64.deb"
+)
+
+# Download and install each package
+for TYPE in "${!PACKAGES[@]}"; do
+  PACKAGE="${PACKAGES[$TYPE]}"
+  download_package "$PACKAGE"
+  echo "Installing $PACKAGE..."
+  sudo dpkg -i "./$PACKAGE"
 done
-echo "Docker packages downloaded successfully!"
+
+echo "Docker packages downloaded and installed successfully!"
