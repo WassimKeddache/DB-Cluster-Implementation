@@ -9,7 +9,6 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
 cd /home/ubuntu/gatekeeper
 
-cp dns_dict.json /home/ubuntu/db
 cp dns_dict.json /home/ubuntu/proxy
 cp dns_dict.json /home/ubuntu/trusted_host
 

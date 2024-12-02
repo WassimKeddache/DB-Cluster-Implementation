@@ -1,12 +1,10 @@
+import asyncio
 import aws_actions as aws
 import logging
 import ssh_interface as ssh
 import os
 import json
-# TODO 
-
-# Tester le script de cloudwatch
-# Mettre les bons format de vm
+import cloudwatch as cw
 
 def execute():
     logging.basicConfig(level=logging.INFO)
@@ -85,3 +83,9 @@ def execute():
     
 if __name__ == "__main__":
     execute()
+    
+    with open("./gatekeeper/dns_dict.json", "r") as file:
+        dns_dict = json.load(file)
+
+    gatekeeper_dns = dns_dict['gatekeeper']
+    asyncio.run(cw.benchmark(f"http://{gatekeeper_dns}"))

@@ -1,4 +1,4 @@
-Benchmark results for ec2-54-87-10-39.compute-1.amazonaws.com (Master: True):
+Benchmark results for ec2-34-227-49-202.compute-1.amazonaws.com (Master: True):
 sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
 
 Running the test with following options:
@@ -12,33 +12,33 @@ Threads started!
 
 SQL statistics:
     queries performed:
-        read:                            14448
+        read:                            8680
         write:                           0
-        other:                           2064
-        total:                           16512
-    transactions:                        1032   (103.09 per sec.)
-    queries:                             16512  (1649.42 per sec.)
+        other:                           1240
+        total:                           9920
+    transactions:                        620    (61.94 per sec.)
+    queries:                             9920   (991.10 per sec.)
     ignored errors:                      0      (0.00 per sec.)
     reconnects:                          0      (0.00 per sec.)
 
 General statistics:
-    total time:                          10.0085s
-    total number of events:              1032
+    total time:                          10.0067s
+    total number of events:              620
 
 Latency (ms):
-         min:                                    6.99
-         avg:                                    9.69
-         max:                                   28.98
-         95th percentile:                       12.52
-         sum:                                10000.04
+         min:                                   11.04
+         avg:                                   16.13
+         max:                                   45.82
+         95th percentile:                       23.10
+         sum:                                10000.07
 
 Threads fairness:
-    events (avg/stddev):           1032.0000/0.00
-    execution time (avg/stddev):   10.0000/0.00
+    events (avg/stddev):           620.0000/0.00
+    execution time (avg/stddev):   10.0001/0.00
 
 
 ==================================================
-Benchmark results for ec2-34-201-71-96.compute-1.amazonaws.com (Master: False):
+Benchmark results for ec2-34-234-75-72.compute-1.amazonaws.com (Master: False):
 sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
 
 Running the test with following options:
@@ -52,33 +52,33 @@ Threads started!
 
 SQL statistics:
     queries performed:
-        read:                            12530
+        read:                            9464
         write:                           0
-        other:                           1790
-        total:                           14320
-    transactions:                        895    (89.38 per sec.)
-    queries:                             14320  (1430.01 per sec.)
+        other:                           1352
+        total:                           10816
+    transactions:                        676    (67.55 per sec.)
+    queries:                             10816  (1080.82 per sec.)
     ignored errors:                      0      (0.00 per sec.)
     reconnects:                          0      (0.00 per sec.)
 
 General statistics:
-    total time:                          10.0123s
-    total number of events:              895
+    total time:                          10.0049s
+    total number of events:              676
 
 Latency (ms):
-         min:                                    6.51
-         avg:                                   11.18
-         max:                                   29.52
-         95th percentile:                       15.00
-         sum:                                10002.94
+         min:                                    9.85
+         avg:                                   14.79
+         max:                                   28.69
+         95th percentile:                       18.61
+         sum:                                 9997.90
 
 Threads fairness:
-    events (avg/stddev):           895.0000/0.00
-    execution time (avg/stddev):   10.0029/0.00
+    events (avg/stddev):           676.0000/0.00
+    execution time (avg/stddev):   9.9979/0.00
 
 
 ==================================================
-Benchmark results for ec2-54-224-248-87.compute-1.amazonaws.com (Master: False):
+Benchmark results for ec2-54-163-23-121.compute-1.amazonaws.com (Master: False):
 sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
 
 Running the test with following options:
@@ -92,29 +92,29 @@ Threads started!
 
 SQL statistics:
     queries performed:
-        read:                            12866
+        read:                            8610
         write:                           0
-        other:                           1838
-        total:                           14704
-    transactions:                        919    (91.77 per sec.)
-    queries:                             14704  (1468.24 per sec.)
+        other:                           1230
+        total:                           9840
+    transactions:                        615    (61.42 per sec.)
+    queries:                             9840   (982.78 per sec.)
     ignored errors:                      0      (0.00 per sec.)
     reconnects:                          0      (0.00 per sec.)
 
 General statistics:
-    total time:                          10.0132s
-    total number of events:              919
+    total time:                          10.0101s
+    total number of events:              615
 
 Latency (ms):
-         min:                                    6.14
-         avg:                                   10.89
-         max:                                   29.52
-         95th percentile:                       15.27
-         sum:                                10004.54
+         min:                                   11.74
+         avg:                                   16.27
+         max:                                   46.81
+         95th percentile:                       20.37
+         sum:                                10003.52
 
 Threads fairness:
-    events (avg/stddev):           919.0000/0.00
-    execution time (avg/stddev):   10.0045/0.00
+    events (avg/stddev):           615.0000/0.00
+    execution time (avg/stddev):   10.0035/0.00
 
 
 ==================================================

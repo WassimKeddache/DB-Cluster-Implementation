@@ -1,10 +1,10 @@
 {
-    "gatekeeper": "ec2-3-92-56-2.compute-1.amazonaws.com",
+    "gatekeeper": "ec2-44-211-160-105.compute-1.amazonaws.com",
     "workers": [
-        "ec2-34-201-71-96.compute-1.amazonaws.com",
-        "ec2-54-224-248-87.compute-1.amazonaws.com"
+        "ec2-34-234-75-72.compute-1.amazonaws.com",
+        "ec2-54-163-23-121.compute-1.amazonaws.com"
     ],
-    "master": "ec2-54-87-10-39.compute-1.amazonaws.com",
-    "proxy": "ec2-44-223-24-67.compute-1.amazonaws.com",
-    "trusted_host": "ec2-54-163-195-66.compute-1.amazonaws.com"
+    "master": "ec2-34-227-49-202.compute-1.amazonaws.com",
+    "proxy": "ec2-98-82-4-124.compute-1.amazonaws.com",
+    "trusted_host": "ec2-3-92-182-197.compute-1.amazonaws.com"
 }

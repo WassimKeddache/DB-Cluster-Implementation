@@ -26,7 +26,7 @@ def create_instances(instance_type: str, number_of_instances: int, security_grou
     try:
         logging.info(f"Creating {number_of_instances} {instance_type} instance(s)")
         instances = ec2.run_instances(
-            ImageId="ami-0e86e20dae9224db8",  # Ubuntu image
+            ImageId="ami-0e86e20dae9224db8",
             MinCount=number_of_instances,
             MaxCount=number_of_instances,
             KeyName="project_pem_key",
@@ -69,13 +69,13 @@ def create_sg_internet_facing(vpc_id):
                     'IpProtocol': 'tcp',
                     'FromPort': 22,
                     'ToPort': 22,
-                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}]  # SSH depuis l'internet
+                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
                 },
                 {
                     'IpProtocol': 'tcp',
                     'FromPort': 80,
                     'ToPort': 80,
-                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}]  # HTTP depuis l'internet
+                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
                 }
             ]
         )
@@ -85,10 +85,10 @@ def create_sg_internet_facing(vpc_id):
             GroupId=security_group_id,
             IpPermissions=[
                 {
-                    'IpProtocol': '-1',  # Allow all traffic
+                    'IpProtocol': '-1',
                     'FromPort': 0,
                     'ToPort': 65535,
-                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}]  # Allow all outbound
+                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
                 }
             ]
         )
@@ -183,7 +183,7 @@ def create_sg_internal(vpc_id, external_sg_id):
                     'ToPort': 3306,
                     'UserIdGroupPairs': [
                         {
-                            'Description': 'MySQL access from external instances', # TODO A RETIRER QUAND ON AURA UN PROXY
+                            'Description': 'MySQL access from external instances',
                             'GroupId': external_sg_id
                         }
                     ]
@@ -196,7 +196,7 @@ def create_sg_internal(vpc_id, external_sg_id):
             GroupId=internal_sg_id,
             IpPermissions=[
                 {
-                    'IpProtocol': '-1',  # Allow all traffic
+                    'IpProtocol': '-1',
                     'FromPort': 0,
                     'ToPort': 65535,
                     'UserIdGroupPairs': [
@@ -204,10 +204,10 @@ def create_sg_internal(vpc_id, external_sg_id):
                         'Description': 'HTTP access from other instances',
                         'GroupId': internal_sg_id
                         }
-                    ] # Allow all outbound
+                    ]
                 },
                 {
-                    'IpProtocol': '-1',  # Allow all traffic
+                    'IpProtocol': '-1',
                     'FromPort': 0,
                     'ToPort': 65535,
                     'UserIdGroupPairs': [
@@ -215,7 +215,7 @@ def create_sg_internal(vpc_id, external_sg_id):
                         'Description': 'HTTP access from other instances',
                         'GroupId': external_sg_id
                         }
-                    ]  # Allow all outbound
+                    ]
                 }
             ]
         )

@@ -1,7 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const express = require('express');
-const axios = require('axios'); // Import axios
+const axios = require('axios');
 const app = express();
 app.use(express.json());
 const port = 80;
@@ -36,7 +36,6 @@ app.get('/customized', async (req, res) => {
       return res.status(403).send({ message: "Unauthorized" });
     }
 
-    // Direct GET request using axios
     const response = await axios.get(`http://${trustedHost}/customized`);
     res.json(response.data);
   } catch (e) {
@@ -52,7 +51,6 @@ app.get('/random', async (req, res) => {
       return res.status(403).send({ message: "Unauthorized" });
     }
 
-    // Direct GET request using axios
     const response = await axios.get(`http://${trustedHost}/random`);
     res.json(response.data);
   } catch (e) {
@@ -68,7 +66,6 @@ app.get('/direct-hit', async (req, res) => {
       return res.status(403).send({ message: "Unauthorized" });
     }
 
-    // Direct GET request using axios
     const response = await axios.get(`http://${trustedHost}/direct-hit`);
     res.json(response.data);
   } catch (e) {
