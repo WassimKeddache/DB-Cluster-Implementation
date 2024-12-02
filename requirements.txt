@@ -1,0 +1,6 @@
+aiohttp
+paramiko
+boto3
+matplotlib
+numpy
+pandas

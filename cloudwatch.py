@@ -168,10 +168,7 @@ async def benchmark(gatekeeper_url):
         }
         
         async with aiohttp.ClientSession() as session:
-            tasks = [call_endpoint_http(session, i, url) for i in range(num_requests)]
-            url = f"{gatekeeper_url}/"
-            write_tasks = [call_endpoint_http(session, i, url, "POST", data) for i in range(1000)]
-            tasks.extend(write_tasks)
+            tasks = [call_endpoint_http(session, i, url) for i in range(num_requests)] + [call_endpoint_http(session, i, f"{gatekeeper_url}/", "POST", data) for i in range(1000)]
             await asyncio.gather(*tasks)
 
         
