@@ -13,6 +13,8 @@ echo "Installing dependencies..."
 
 pip install --upgrade pip
 pip install -r requirements.txt
+chmod 600 project_pem_key.pem
+
 
 echo "Running script ..."
 python main.py
